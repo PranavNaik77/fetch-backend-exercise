@@ -12,9 +12,9 @@ This is a webservice that fulfills the documented api. The API is described belo
 
 ### Dependencies
 
-- **cors**: 
-- **uuid**: 
-- **express**: 
+- **cors**: used to handle and enforce CORS policies in the service.
+- **uuid**: used to generate and work with unique identifiers (id) in the service.
+- **express**:  used for routing and middleware support in the service.
 
 ### Running App Locally
 
