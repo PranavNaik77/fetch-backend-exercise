@@ -1,21 +1,22 @@
-FROM node:18
-
-#Working Dir
+# Build Stage
+FROM node:18 AS build
 WORKDIR /src/
-
-#Copy Package Json File
 COPY package*.json ./
-
-#Install Files
 RUN npm install
-
-#Copy Source Files
 COPY . .
-
-#Build
 RUN npm run build
 
-#Expose the API Port
-EXPOSE 8800
+# Test Stage
+FROM build AS test
+WORKDIR /src/
+RUN npm ci
+COPY . .
+CMD ["npm", "test"]
 
-CMD [ "node", "src/index.js" ]
+# Run Stage
+FROM node:18 AS run
+WORKDIR /app
+COPY --from=build /src/ .
+EXPOSE 8800
+CMD ["node", "src/index.js"]
+

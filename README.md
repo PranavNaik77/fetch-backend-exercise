@@ -5,6 +5,7 @@ This is a webservice that fulfills the documented api. The API is described belo
 ## Tech Stack:
 
 - **Backend Server**: Node.js and Express
+- **Unit tests**: Jest
 - **Version Control**: GitHub
 - **API Incepter**: Postman
 
@@ -15,6 +16,8 @@ This is a webservice that fulfills the documented api. The API is described belo
 - **cors**: used to handle and enforce CORS policies in the service.
 - **uuid**: used to generate and work with unique identifiers (id) in the service.
 - **express**:  used for routing and middleware support in the service.
+- **jest**: used for testing the backend service.
+- **axios**: used to make HTTP Requests (Get and Post).
 
 ### Running App Locally
 
@@ -23,19 +26,17 @@ This is a webservice that fulfills the documented api. The API is described belo
 - Make sure you have docker up and running on your machine.
 - Clone this repo, and make sure the present working directory is 1 level above the root folder and follow these steps:
 ```
-docker build ./fetch-backend-exercise -t fetch-backend
+docker build ./fetch-backend-exercise -t fetch-backend-exercise-app:latest
 ```
 
 ```
-docker run --name api-container -p 8800:8800/tcp -d fetch-backend
+docker-compose -f ./fetch-backend-exercise/docker-compose.yml up
 ```
-```
-docker logs -f api-container
-```
+
 
 #### Without Docker
 
-- Make sure you have the latest version of Node Installed on your machine.
+- Make sure you have the latest version of Node Installed on your machine, if not please click [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
 - On to your Desktop open terminal
 - Clone this repo, and in the root folder follow these steps:
 
@@ -47,16 +48,29 @@ docker logs -f api-container
 - The Server will start on port `8800`
 
 ```
-npm start
+npm start & npm test
 ```
 
 - You will see this once it is started
 
 ```
-> -------------------------------
-> Backend Service ready to be used at port: 8800
-> URL: http://localhost:8800
-> -------------------------------
+-------------------------------
+Backend Service ready to be used at port: 8800
+URL: http://localhost:8800
+-------------------------------
+ PASS  src/test/api/endpoints.spec.js
+  Process Receipts API for valid data
+    ✓ POST /receipts/process returns a JSON object with an ID (24 ms)
+    ✓ GET /receipts/{id}/points returns a JSON object with the number of points awarded (3 ms)
+  Process Receipts API for Invalid data
+    ✓ POST /receipts/process returns a JSON object with an Invalid ratialer name error (2 ms)
+    ✓ POST /receipts/process returns a JSON object with an Invalid purchase date error (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       4 passed, 4 total
+Snapshots:   0 total
+Time:        0.214 s, estimated 1 s
+Ran all test suites.
 ```
 
 ### Endpoints
@@ -75,7 +89,11 @@ GET http://localhost:8800/receipts/:id/points
 
 ![image1.png](src/images/processReceipt.png)
 
-![image.png](src/images/getPoints.png)
+![image2.png](src/images/getPoints.png)
+
+![image3.png](src/images/docker1.png)
+
+![image4.png](src/images/docker2.png)
 
 
 ## Summary of API Specification
