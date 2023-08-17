@@ -1,8 +1,24 @@
 const { v4: uuidv4 } = require('uuid');
-const { rule1, rule2, rule3, rule4, rule5, rule6, rule7 } = require("../utility/rules");
+const utilityRules = require("../utility/rules");
 const { createError } = require("../utility/error");
 
 const map = new Map();
+const { getRetailerNameLengthPoints, 
+        getReceiptTotalAmountPoints, 
+        getReceiptItemLengthPoints, 
+        getRetailerItemDescriptionPoints, 
+        getReceiptPurchaseDatePoints, 
+        getReceiptPurchaseTimePoints } = utilityRules;
+
+const errorMessages = new Map([
+    ["retailer", "No retailer name found"],
+    ["total", "No retailer total found"],
+    ["items", "No retailer item found"],
+    ["purchaseDate", "No purchase date found"],
+    ["purchaseTime", "No purchase time found"],
+    ["invalidDate", "Invalid purchase date"],
+    ["invalidTime", "Invalid purchase time found"],
+]);
 
 const isValidDate = (d) => {
     var date = new Date(d);
@@ -15,63 +31,50 @@ const isValidTime = (time) => {
     return hour<24 && minute<60;
 }
 
-const calculatePoints = (receipt) => {
+const validateReceipt = (receipt) => {
 
-    let points = 0;
-    let error;
+    for (const field of ["retailer", "total", "items", "purchaseDate", "purchaseTime"]){
+        if (!receipt[field]){
+            return createError(404, errorMessages.get(field));
+        }
+    }
+
+    if (!isValidDate(receipt.purchaseDate)) {
+        return createError(400, errorMessages.get("invalidDate"));
+    }
+
+    if (!isValidTime(receipt.purchaseTime)) {
+        return createError(400, errorMessages.get("invalidTime"));
+    }
+
+    return null;
+}
+
+const getTotalPoints = (receipt) => {
     
-    // Rule-1
-    if (receipt.retailer){
-        points = points + rule1(receipt.retailer);   
-    }
-    else{
-        error = createError(500, "Invalid retailor name");
-    }
+    let points = 0;
 
-    // Rule-2 and Rule-3
-    if (receipt.total) {
-        points = rule2(receipt.total) ? points + 50 : points;
-        points = rule3(receipt.total) ? points + 25 : points;
-    }
-    else{
-        error = createError(500, "Invalid amount");
-    }
+    points += getRetailerNameLengthPoints(receipt);   
+    points += getReceiptTotalAmountPoints(receipt);
+    points += getReceiptItemLengthPoints(receipt);
+    points += getRetailerItemDescriptionPoints(receipt);
+    points += getReceiptPurchaseDatePoints(receipt);
+    points += getReceiptPurchaseTimePoints(receipt);
 
-    // Rule-4 and Rule-5
-    if (receipt.items) {
-        points = points + rule4(receipt.items.length);
-        points = points + rule5(receipt.items);
-    }
-    else{
-        error = createError(500, "Invalid items");
-    }
-
-    // Rule-6 
-    if (receipt.purchaseDate && isValidDate(receipt.purchaseDate))
-        points = rule6(receipt.purchaseDate) ? points + 6 : points;
-    else{
-        error = createError(500, "Invalid purchase date");
-    }
-
-    // Rule-7
-    if (receipt.purchaseTime && isValidTime(receipt.purchaseTime))
-        points = rule7(receipt.purchaseTime) ? points + 10 : points;
-    else{
-        error = createError(500, "Invalid purchase time");
-    }
-
-    return {points,error};
-};
+    return points;
+}
 
 exports.processReceipt = (req,res,next) => {
     
     const receipt = req.body;
 
-    const {points, error} = calculatePoints(receipt);
+    error = validateReceipt(receipt);
 
-    if(error){
+    if(error != null){
         return next(error);
     }
+
+    const points = getTotalPoints(receipt);
 
     const newId = uuidv4();
     map.set(newId, points);
@@ -81,7 +84,7 @@ exports.processReceipt = (req,res,next) => {
 exports.getPoints = (req,res,next) => {
     const id = req.params.id;
     if(!map.get(id)){
-        return next(createError(500, "ID not found"));
+        return next(createError(404, "ID not found"));
     }
     res.status(200).json({
         points: map.get(id)

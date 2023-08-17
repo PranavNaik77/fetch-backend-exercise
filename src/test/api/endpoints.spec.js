@@ -46,7 +46,7 @@ describe('Process Receipts API for valid data', () => {
 });
 
 describe('Process Receipts API for Invalid data', () => {
-    test('POST /receipts/process returns a JSON object with an Invalid ratialer name error', async () => {
+    test('POST /receipts/process returns a JSON object with an No ratialer name error', async () => {
         // data with no retailer
         const receipt = {
             "purchaseDate": "2022-01-01",
@@ -75,8 +75,8 @@ describe('Process Receipts API for Invalid data', () => {
         try {
             await axios.post(`http://${appHost}:8800/receipts/process`, receipt);
         } catch (error) {
-            expect(error.response.status).toBe(500);
-            expect(error.response.data.message).toBe("Invalid retailor name");
+            expect(error.response.status).toBe(404);
+            expect(error.response.data.message).toBe("No retailer name found");
         }
     });
 
@@ -110,7 +110,7 @@ describe('Process Receipts API for Invalid data', () => {
         try {
             await axios.post(`http://${appHost}:8800/receipts/process`, receipt);
         } catch (error) {
-            expect(error.response.status).toBe(500);
+            expect(error.response.status).toBe(400);
             expect(error.response.data.message).toBe("Invalid purchase date");
         }
     });
